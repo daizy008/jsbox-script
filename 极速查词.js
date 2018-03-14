@@ -18,7 +18,7 @@ $http.request({
       title: text,
       body: def,
       delay: delay,
-      script: "极速查词",
+      script: "NotifiDic",
       mute: 1,
     })
   }
