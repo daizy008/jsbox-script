@@ -1,4 +1,4 @@
-// vision = 1.0
+// version = 1.0
 var text = $clipboard.text
 
 if ($app.env == $env.today) {
