@@ -1,5 +1,6 @@
 // version = 1.1
 var text = $clipboard.text
+var name = $addin.current.name
 
 if ($app.env == $env.today) {
   var delay = 2;
@@ -18,7 +19,7 @@ $http.request({
       title: text,
       body: def,
       delay: delay,
-      script: "NotifiDic",
+      script: name,
       mute: 1,
     })
   }
