@@ -1,4 +1,4 @@
-// version = 1.0
+// version = 1.1
 var text = $clipboard.text
 
 if ($app.env == $env.today) {
