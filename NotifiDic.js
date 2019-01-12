@@ -483,6 +483,8 @@ function titems(indexPath,gitems){
   for( i = pageIndexb;i < pageIndexe; i++ ){
     var giDataRaw = $("wordList").object($indexPath(0,i))
     var wordRaw = giDataRaw.word
+    var gInfo = wordRaw.info
+    gInfo.index = i
     var word = wordRaw.text
     var gitem = {
       type: "label",
@@ -490,7 +492,7 @@ function titems(indexPath,gitems){
         text: word,
         align: $align.center,
         font: $font("AvenirNext-BoldItalic",35),
-        info: wordRaw.info,
+        info: gInfo,
         textColor: $color("white"),
         lines: 0,
       },
@@ -525,7 +527,13 @@ function checked(){
     handler: function(resp) {
     }
   })
+  // 在 gallery 标记
   $("gallery").views[itemLoc].text = "✅"+ word
+  // 在 wordlist 标记
+  var listLoc = itemInfo.index  
+  var wordListData = $("wordList").data
+  wordListData[listLoc].word.text = "✅"+ word
+  $("wordList").data = wordListData
 }
 
 $app.tips("此脚本支持与 Airtable 搭配使用。\n 如需此功能，请JSBOX内打开脚本，点击顶部设置按钮自行配置。\n而后查词历史将保存到 Airtable，并可在 JSBOX 内浏览")
