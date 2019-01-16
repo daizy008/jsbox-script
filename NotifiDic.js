@@ -1,4 +1,4 @@
-const version = "2.9"
+const version = "2.92"
 var text = $clipboard.text
 var name = $addin.current.name
 var delay = 0
@@ -590,7 +590,9 @@ function delCancel() {
 function delExc() {
   let delRows = []
   for (var delItem of delIndex) {
+    let uDelList = $("wordList").data
     uDelList[delItem.row].shadow.alpha = 1
+    $("wordList").data = uDelList
     var delID = $("wordList").object(delItem).word.info.recID
     var rUrl = `https://api.airtable.com/v0/${baseName}/${tableName}/${delID}`;
     $http.request({
