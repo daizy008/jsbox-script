@@ -128,7 +128,7 @@ function flashCard() {
               }, {
                 type: "label",
                 props: {
-                  id: "cndef",
+                  id: "cnDef",
                   autoFontSize: true,
                   lines: 0,
                 },
@@ -141,7 +141,7 @@ function flashCard() {
               ],
               props: {
                 bgcolor: $color("white"),
-                id: "shadow"
+                id: "shadow",
               },
               layout: function (make, view) {
                 make.edges.inset(0.1);
@@ -181,12 +181,8 @@ function flashCard() {
       layout: $layout.fill,
       events: {
         didReachBottom: function (sender) {
-          if (statusDel == 0) {  //❓待测试，多选后，容易无法继续执行
-            initTable();
-            sender.endFetchingMore()
-          } else {
-            sender.endFetchingMore()
-          }
+          initTable();
+          sender.endFetchingMore()
         }, //触底动作
         didSelect: function (sender, indexPath, data) {
           var gitems = [] //gallery 的数据
@@ -195,17 +191,21 @@ function flashCard() {
         },
         didLongPress: function (sender, indexPath, data) {
           addnew()
-          var delObj = $("wordList").cell(indexPath)
-          if (delObj.alpha == 1) {
-            delObj.alpha = 0.3
+          let dataWord = data.word
+          if (dataWord.text == dataWord.info.word) {
+            let uDelList = $("wordList").data
+            uDelList[indexPath.row].word.text = "❌" + dataWord.text;
+            uDelList[indexPath.row].shadow.alpha = 0.3
+            $("wordList").data = uDelList
             delIndex.push(indexPath)
           } else {
-            delObj.alpha = 1
+            let uDelList = $("wordList").data
+            uDelList[indexPath.row].shadow.alpha = 1
+            uDelList[indexPath.row].word.text = dataWord.info.word
+            $("wordList").data = uDelList
             var newDelIndex = delIndex.filter(del => del !== indexPath)
             delIndex = newDelIndex
           }
-          console.log(delIndex)
-
         },
       },
     }],
@@ -218,14 +218,12 @@ function flashCard() {
     }
   });
 }
-
 // list 初始化
 function initTable() {
   listData = $("wordList").data;
   getTable();
   return pgOffset;
 }
-
 // 获取 airtable 数据
 function getTable() {
   $http.get({
@@ -237,7 +235,7 @@ function getTable() {
       tableData = resp.data.records;
       if (tableData !== undefined) {  //判断数据源是否到底
         if (pgOffset !== resp.data.offset) {   // 避免重复提交
-          pgOffset = resp.data.offset; // 【】airtable 分页，表格格式不正确可能会导致无法获取
+          pgOffset = resp.data.offset; // airtable 分页，表格格式不正确可能会导致无法获取
           pushData(tableData);
           $("wordList").data = listData;
           return pgOffset;
@@ -259,6 +257,9 @@ function pushData() {
     var voice = field.发音[0].url
     var recID = record.id
     var listItem = {
+      shadow: {
+        alpha: 1
+      },
       word: {
         text: myWord,
         font: $font("AlNile-Bold", 20),
@@ -268,10 +269,10 @@ function pushData() {
           voice: voice,
           cnDef: cnDef,
           word: myWord,
-          recID: recID
+          recID: recID,
         }
       },
-      cndef: {
+      cnDef: {
         text: cnDef,
         font: $font(14)
       }
@@ -279,8 +280,6 @@ function pushData() {
     listData.push(listItem)
   }
 };
-
-
 // 边框阴影
 function shadowSet(view) {
   var layer = view.runtimeValue().invoke("layer")
@@ -290,7 +289,6 @@ function shadowSet(view) {
   layer.invoke("setShadowRadius", 4)
   layer.invoke("setCornerRadius", 5)
 }
-
 // 设置 airtable 参数页
 var setting = function () {
   $ui.push({
@@ -426,7 +424,6 @@ var setting = function () {
     ]
   });
 }
-
 // 幻灯视图
 function tinder(gitems, indexPath) {
   $ui.push({
@@ -505,13 +502,11 @@ function tinder(gitems, indexPath) {
       }]
   });
 }
-
 // 计算进入 gallery 页面后展示的位置。
 function page(indexPath) {
   var itemPage = indexPath.item % pageSize
   return itemPage;
 }
-
 // 生成 gallery 视图的数据
 function titems(indexPath, gitems) {
   var wlLength = $("wordList").data.length - 1
@@ -548,7 +543,6 @@ function titems(indexPath, gitems) {
     gitems.push(gitem)
   }
 }
-
 // 选择记住当前单词
 function checked() {
   var itemLoc = $("gallery").page;
@@ -583,10 +577,11 @@ $app.tips("此脚本支持与 Airtable 搭配使用。\n 如需此功能，请JS
 
 // 取消批量删除
 function delCancel() {
-  console.log(delIndex)
   for (var delItem of delIndex) {
-    console.log(delItem)
-    $("wordList").cell(delItem).alpha = 1
+    let uDelList = $("wordList").data
+    uDelList[delItem.row].shadow.alpha = 1
+    uDelList[delItem.row].word.text = uDelList[delItem.row].word.info.word
+    $("wordList").data = uDelList
   }
   delIndex = []
 }
@@ -595,7 +590,7 @@ function delCancel() {
 function delExc() {
   let delRows = []
   for (var delItem of delIndex) {
-    $("wordList").cell(delItem).alpha = 1
+    uDelList[delItem.row].shadow.alpha = 1
     var delID = $("wordList").object(delItem).word.info.recID
     var rUrl = `https://api.airtable.com/v0/${baseName}/${tableName}/${delID}`;
     $http.request({
