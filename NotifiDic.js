@@ -1,4 +1,4 @@
-const version = "2.92"
+const version = "2.9.3"
 var text = $clipboard.text
 var name = $addin.current.name
 var delay = 0
@@ -433,18 +433,30 @@ function tinder(gitems, indexPath) {
     },
     views: [
       {
+        type: "view",
+        props: {
+          bgcolor: $color("white"),
+        },
+        layout: function (make, view) {
+          make.left.right.inset(12)
+          make.centerY.equalTo(view.super).offset(-50)
+          make.height.equalTo(390)
+          shadowSet(view);
+        }
+      },
+      {
         type: "gallery",
         props: {
           id: "gallery",
-          smoothRadius: 12,
+          smoothRadius: 5,
           items: gitems,
           bgcolor: $color("tint"),
           page: page(indexPath),
         },
         layout: function (make, view) {
-          make.left.right.inset(10)
+          make.left.right.inset(12)
           make.centerY.equalTo(view.super).offset(-50)
-          make.height.equalTo(400)
+          make.height.equalTo(390)
           shadowSet(view)
         },
         events: {
@@ -452,7 +464,20 @@ function tinder(gitems, indexPath) {
             // ❓【】首末位实现循环？似乎做不到
           }
         }
-      }, {
+      },
+      {
+        type: "view",
+        props: {
+          bgcolor: $color("white"),
+        },
+        layout: function (make, view) {
+          make.bottom.inset(55)
+          make.left.inset(50)
+          make.size.equalTo($size(80, 60))
+          shadowSet(view);
+        }
+      }, 
+      {
         type: "button",
         props: {
           title: "已记住",
@@ -464,18 +489,31 @@ function tinder(gitems, indexPath) {
           }
         },
         layout: function (make, view) {
-          make.bottom.inset(60)
+          make.bottom.inset(55)
           make.left.inset(50)
           make.size.equalTo($size(80, 60))
         }
-      }, {
+      },
+      {
+        type: "view",
+        props: {
+          bgcolor: $color("white"),
+        },
+        layout: function (make, view) {
+          make.bottom.inset(55)
+          make.right.inset(50)
+          make.size.equalTo($size(80, 60))
+          shadowSet(view);
+        }
+      }, 
+      {
         type: "button",
         props: {
           title: "不认识",
           icon: $icon("016", $color("white")),
         },
         layout: function (make, view) {
-          make.bottom.inset(60)
+          make.bottom.inset(55)
           make.right.inset(50)
           make.size.equalTo($size(80, 60))
         },
