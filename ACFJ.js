@@ -12,6 +12,8 @@ var homeRecs = $cache.get("homeRecs") || []
 var fcFrontRecs = $cache.get("fcFrontRecs") || []
 var fcBackRecs = $cache.get("fcBackRecs") || []
 var fcVoice = $cache.get("fcVoice") || []
+$app.keyboardToolbarEnabled = true
+$app.autoKeyboardEnabled = true
 
 // 主界面
 $ui.render({
