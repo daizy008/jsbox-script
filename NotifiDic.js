@@ -1,4 +1,4 @@
-const version = "2.9.3"
+const version = "2.9.4"
 var text = $clipboard.text
 var name = $addin.current.name
 var delay = 0
@@ -11,6 +11,8 @@ var baseName = $cache.get("baseName")
 var airUrl = `https://api.airtable.com/v0/${baseName}/${tableName}?pageSize=${pageSize}&view=${viewName}&offset=`
 var delIndex = []
 var statusDel = 0
+$app.keyboardToolbarEnabled = true
+$app.autoKeyboardEnabled = true
 
 //判断如果运行环境不为主 app 时执行搜词，且为 widget 时 push 延迟 2 秒
 if ($app.env !== $env.app) {
