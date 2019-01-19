@@ -531,7 +531,7 @@ function checked() {
     $("wordList").data = wordListData
 }
 
-$app.tips("此脚本支持与 Airtable 搭配使用。\n 如需此功能，请JSBOX内打开脚本，点击顶部设置按钮自行配置。\n而后查词历史将保存到 Airtable，并可在 JSBOX 内浏览")
+$app.tips("此脚本支持与 Airtable 搭配使用。\n 如需此功能，请JSBOX内打开脚本，点击顶部设置按钮自行配置 Airtable 参数。\n完成后，点击测试此配置，配置各页面字段")
 
 // 取消批量删除
 function delCancel() {
