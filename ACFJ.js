@@ -1,4 +1,4 @@
-const version = 1.5
+const version = 1.52
 var pgOffset = "";
 var apiKey = $cache.get("apiKey")
 var tableName = $cache.get("tableName")
@@ -531,7 +531,7 @@ function checked() {
     $("wordList").data = wordListData
 }
 
-$app.tips("此脚本支持与 Airtable 搭配使用。\n 如需此功能，请JSBOX内打开脚本，点击顶部设置按钮自行配置 Airtable 参数。\n完成后，点击测试此配置，配置各页面字段")
+$app.tips("此脚本需与 Airtable 搭配使用。\n请在 JSBOX内打开脚本，点击顶部设置按钮自行配置 Airtable 参数。\n完成后，再点击“测试此配置”，配置各页面字段")
 
 // 取消批量删除
 function delCancel() {
