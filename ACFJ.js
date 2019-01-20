@@ -1,4 +1,4 @@
-const version = 1.52
+const version = 1.6;
 var pgOffset = "";
 var apiKey = $cache.get("apiKey")
 var tableName = $cache.get("tableName")
@@ -12,6 +12,7 @@ var homeRecs = $cache.get("homeRecs") || []
 var fcFrontRecs = $cache.get("fcFrontRecs") || []
 var fcBackRecs = $cache.get("fcBackRecs") || []
 var fcVoice = $cache.get("fcVoice") || []
+var keyboard = $cache.get("keyboard") || []
 $app.keyboardToolbarEnabled = true
 $app.autoKeyboardEnabled = true
 
@@ -106,26 +107,34 @@ $ui.render({
                 sender.endFetchingMore()
             }, //触底动作
             didSelect: function (sender, indexPath, data) {
-                var gitems = [] //gallery 的数据
-                titems(indexPath, gitems)
-                tinder(gitems, indexPath)
+                if ($app.env == $env.keyboard) {
+                    keyboardInput(data)
+                } else {
+                    var gitems = [] //gallery 的数据
+                    titems(indexPath, gitems)
+                    tinder(gitems, indexPath)
+                }
             },
             didLongPress: function (sender, indexPath, data) {
-                addnew()
-                let dataH1 = data.h1
-                if (dataH1.text == dataH1.info[homeRecs[0]]) {
-                    let uDelList = $("wordList").data
-                    uDelList[indexPath.row].h1.text = "❌" + dataH1.info[homeRecs[0]];
-                    uDelList[indexPath.row].shadow.alpha = 0.3
-                    $("wordList").data = uDelList
-                    delIndex.push(indexPath)
+                if ($app.env == $env.keyboard) {
+
                 } else {
-                    let uDelList = $("wordList").data
-                    uDelList[indexPath.row].shadow.alpha = 1
-                    uDelList[indexPath.row].h1.text = dataH1.info[homeRecs[0]]
-                    $("wordList").data = uDelList
-                    var newDelIndex = delIndex.filter(del => del !== indexPath)
-                    delIndex = newDelIndex
+                    addnew()
+                    let dataH1 = data.h1
+                    if (dataH1.text == dataH1.info[homeRecs[0]]) {
+                        let uDelList = $("wordList").data
+                        uDelList[indexPath.row].h1.text = "❌" + dataH1.info[homeRecs[0]];
+                        uDelList[indexPath.row].shadow.alpha = 0.3
+                        $("wordList").data = uDelList
+                        delIndex.push(indexPath)
+                    } else {
+                        let uDelList = $("wordList").data
+                        uDelList[indexPath.row].shadow.alpha = 1
+                        uDelList[indexPath.row].h1.text = dataH1.info[homeRecs[0]]
+                        $("wordList").data = uDelList
+                        var newDelIndex = delIndex.filter(del => del !== indexPath)
+                        delIndex = newDelIndex
+                    }
                 }
             },
         },
@@ -474,10 +483,10 @@ function titems(indexPath, gitems) {
         let h1 = fcFrontRecs[0]
         let h2 = fcFrontRecs[1]
         let gInfo = giDataRaw.h1.info
-        if(gInfo[h2]){
-            var gFront = gInfo[h1] + "\n" + gInfo[h2]      
+        if (gInfo[h2]) {
+            var gFront = gInfo[h1] + "\n" + gInfo[h2]
         } else {
-        var gFront = gInfo[h1];
+            var gFront = gInfo[h1];
         };
         gInfo.gFront = gFront
         gInfo.index = i
@@ -531,7 +540,7 @@ function checked() {
     $("wordList").data = wordListData
 }
 
-$app.tips("此脚本需与 Airtable 搭配使用。\n请在 JSBOX内打开脚本，点击顶部设置按钮自行配置 Airtable 参数。\n完成后，再点击“测试此配置”，配置各页面字段")
+$app.tips("此脚本需与 Airtable 搭配使用。\n 请在 JSBOX内打开脚本，点击顶部设置按钮自行配置 Airtable 参数。\n完成后，再点击“测试此配置”，配置各页面字段")
 
 // 取消批量删除
 function delCancel() {
@@ -663,7 +672,7 @@ function recSetting() {
                 },
                 layout: function (make, view) {
                     make.top.equalTo(view.prev.bottom).inset(5),
-                    make.left.right.inset(10)
+                        make.left.right.inset(10)
                     make.height.equalTo(120)
                 }
             },
@@ -676,7 +685,7 @@ function recSetting() {
                 },
                 layout: function (make, view) {
                     make.top.equalTo(view.prev.bottom).inset(20),
-                    make.left.equalTo($("restart").left)
+                        make.left.equalTo($("restart").left)
                     make.size.equalTo($size(300, 30))
                 },
                 events: {
@@ -684,7 +693,7 @@ function recSetting() {
                         $picker.data({
                             props: {
                                 items: pickerItem(2),
-                                data: homeRecs 
+                                data: homeRecs
                             },
                             handler: function (data) {
                                 $cache.set("homeRecs", data);
@@ -768,6 +777,31 @@ function recSetting() {
                     }
                 }
             },
+            {
+                type: "button",
+                props: {
+                    title: "⌨️键盘字段配置",
+                    id: "keyboard",
+                    type: 1,
+                },
+                layout: function (make, view) {
+                    make.top.equalTo(view.prev.bottom).inset(25)
+                    make.left.equalTo(view.prev.left)
+                    make.size.equalTo($size(300, 30))
+                },
+                events: {
+                    tapped: function (sender) {
+                        $picker.data({
+                            props: {
+                                items: pickerItem(4)
+                            },
+                            handler: function (data) {
+                                $cache.set("keyboard", data);
+                            }
+                        });
+                    }
+                }
+            },
         ],
         events: {
             appeared: function (sender) {
@@ -800,4 +834,14 @@ function pickerItem(num) {
         pItems.push(arrayF)
     }
     return pItems
+}
+
+function keyboardInput(data) {
+    let info = data.h1.info
+    let t1 = info[keyboard[0]] || ""
+    let t2 = info[keyboard[1]] || ""
+    let t3 = info[keyboard[2]] || ""
+    let t4 = info[keyboard[3]] || ""
+    let inputText = t1 + "\n" + t2 + "\n" + t3 + "\n" + t4
+    $keyboard.insert(inputText)
 }
