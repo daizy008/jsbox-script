@@ -249,7 +249,7 @@ function setting() {
       {
         type: "markdown",
         props: {
-          content: "base url 可在 airtable api 文档中找到，格式为 https://api.airtable.com/v0/appxxxxx 。包含 base 名，但不含 table 名。 \n table name 和 view name 是你的表格名称和视图名称。填入时无需 URL 编码。\n page size 是一次从 airtable 服务器加载的条目数。",
+          content: "base url 可在 airtable api 文档中找到，格式为 https://api.airtable.com/v0/appxxxxx 。包含 base 名，但不含 table 名。 \n table name 和 view name 是你的表格名称和视图名称。填入时无需 URL 编码。\n page size 是指你希望一次从 airtable 服务器加载的条目数。",
           //scrollEnabled: false
         },
         layout: function (make, view) {
