@@ -1,4 +1,4 @@
-const version = 1.72;
+const version = 1.73;
 var pgOffset = "";
 var apiKey = $cache.get("apiKey");
 var tableName = $cache.get("tableName") || "";
@@ -103,7 +103,7 @@ function main() {
           },
           events: {
             tapped: function (sender) {
-              setting();
+              setting(1);
             }
           }
         },
@@ -239,7 +239,7 @@ function shadowSet(view) {
   layer.invoke("setCornerRadius", 5);
 }
 // 设置 airtable 参数页
-function setting() {
+function setting(btnRs=0) {
   $ui.render({
     props: {
       title: "设置",
@@ -378,7 +378,8 @@ function setting() {
       {
         type: "button",
         props: {
-          title: "继续设置要展示的字段"
+          title: "继续设置要展示的字段",
+          hidden: btnRs
         },
         layout: function (make, view) {
           make.top.equalTo(view.prev.bottom).inset(20);
