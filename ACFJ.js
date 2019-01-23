@@ -1,18 +1,21 @@
-const version = 1.73;
+const version = 1.8;
 var pgOffset = "";
-var apiKey = $cache.get("apiKey");
-var tableName = $cache.get("tableName") || "";
-var viewName = $cache.get("viewName") || "";
-var pageSize = $cache.get("pageSize");
-var baseUrl = $cache.get("baseUrl");
+var myViews = $cache.get("myViews") || { currentView: "", allViews: {} };
+var cView = myViews.currentView || ""
+var cSetting = myViews.allViews[cView] || {}
+var apiKey = cSetting.apiKey || ""
+var tableName = cSetting.tableName || ""
+var viewName = cSetting.viewName || ""
+var pageSize = cSetting.pageSize || ""
+var baseUrl = cSetting.baseUrl || ""
 var airUrl = `${baseUrl}/${tableName}?pageSize=${pageSize}&view=${viewName}&offset=`;
 var delIndex = []; //待删除对象的索引
 var statusDel = 0; //是否处于删除界面
-var homeRecs = $cache.get("homeRecs") || [];
-var fcFrontRecs = $cache.get("fcFrontRecs") || [];
-var fcBackRecs = $cache.get("fcBackRecs") || [];
-var fcVoice = $cache.get("fcVoice") || [];
-var keyboard = $cache.get("keyboard") || [];
+var homeRecs = cSetting.homeRecs || [];
+var fcFrontRecs = cSetting.fcFrontRecs || [];
+var fcBackRecs = cSetting.fcBackRecs || [];
+var fcVoice = cSetting.fcVoice || [];
+var keyboard = cSetting.keyboard || [];
 var respF = await $http.get({    //检验 airtable 参数是否可用
   url: airUrl + pgOffset,
   header: {
@@ -24,7 +27,7 @@ $app.keyboardToolbarEnabled = true;
 $app.autoKeyboardEnabled = true;
 
 if (respF.response == undefined) {
-  setting()
+  atSetting()
   $ui.toast("请先配置 airtable 参数");
 } else if (homeRecs[0] == undefined || homeRecs[0] == "空") {
   recSetting()
@@ -103,7 +106,7 @@ function main() {
           },
           events: {
             tapped: function (sender) {
-              setting(1);
+              setting();
             }
           }
         },
@@ -238,8 +241,65 @@ function shadowSet(view) {
   layer.invoke("setShadowRadius", 4);
   layer.invoke("setCornerRadius", 5);
 }
+
+// 设置页
+function setting() {
+  $ui.push({
+    props: {
+      title: "设置"
+    },
+    views: [{
+      type: "button",
+      props: {
+        title: "airtable 参数配置"
+      },
+      layout: function (make, view) {
+        make.top.equalTo(view.super).inset(20)
+        make.left.right.inset(15);
+      },
+      events: {
+        tapped: function (sender) {
+          atSetting();
+        }
+      }
+    },
+    {
+      type: "button",
+      props: {
+        title: "设置要展示的字段",
+      },
+      layout: function (make, view) {
+        make.top.equalTo(view.prev.bottom).inset(15);
+        make.left.right.inset(15);
+      },
+      events: {
+        tapped: function (sender) {
+          recSetting();
+        }
+      }
+    },
+    {
+      type: "button",
+      props: {
+        title: "切换视图",
+      },
+      layout: function (make, view) {
+        make.top.equalTo(view.prev.bottom).inset(15);
+        make.left.right.inset(15);
+      },
+      events: {
+        tapped: function (sender) {
+          viewsList()
+        }
+      }
+    },
+    ]
+  });
+}
+
 // 设置 airtable 参数页
-function setting(btnRs=0) {
+function atSetting() {
+  var saveView = {};
   $ui.render({
     props: {
       title: "设置",
@@ -249,7 +309,7 @@ function setting(btnRs=0) {
       {
         type: "markdown",
         props: {
-          content: "base url 可在 airtable api 文档中找到，格式为 https://api.airtable.com/v0/appxxxxx 。包含 base 名，但不含 table 名。 \n table name 和 view name 是你的表格名称和视图名称。填入时无需 URL 编码。\n page size 是指你希望一次从 airtable 服务器加载的条目数。",
+          content: "base url 可在 airtable api 文档中找到，格式为 https://api.airtable.com/v0/appxxxxx 。包含 base 名，但不含 table 名。 \n table name 和 view name 是你的表格名称和视图名称。填入时无需 URL 编码。\n page size 是指你希望一次从 airtable 服务器加载的条目数。完成后需重启脚本。",
           //scrollEnabled: false
         },
         layout: function (make, view) {
@@ -265,17 +325,10 @@ function setting(btnRs=0) {
           placeholder: "填入你的 api key"
         },
         layout: function (make, view) {
-          make.top.equalTo(view.prev.bottom).inset(25)
+          make.top.equalTo(view.prev.bottom).inset(15)
           make.left.equalTo(view.super.left).inset(25);
-          make.size.equalTo($size(300, 40));
+          make.size.equalTo($size(300, 35));
         },
-        events: {
-          changed: function (sender) {
-            var apiKey = sender.text;
-            $cache.set("apiKey", apiKey);
-            //$("apiKey").blur()
-          }
-        }
       },
       {
         type: "input",
@@ -285,57 +338,36 @@ function setting(btnRs=0) {
           placeholder: "粘贴你的 base url"
         },
         layout: function (make, view) {
-          make.top.equalTo(view.prev.bottom).inset(20)
+          make.top.equalTo(view.prev.bottom).inset(15)
           make.left.equalTo(view.prev.left);
-          make.size.equalTo($size(300, 40));
+          make.size.equalTo($size(300, 35));
         },
-        events: {
-          changed: function (sender) {
-            var baseUrl = sender.text;
-            $cache.set("baseUrl", baseUrl);
-            //$("baseUrl").blur()
-          }
-        }
       },
       {
         type: "input",
         props: {
           id: "tableName",
           text: $text.URLDecode(tableName),
-          placeholder: "填入你的 table name。无需编码，但需要注意大小写和空格"
+          placeholder: "填入你的 table name，无需编码"
         },
         layout: function (make, view) {
-          make.top.equalTo(view.prev.bottom).inset(20)
+          make.top.equalTo(view.prev.bottom).inset(15)
           make.left.equalTo(view.prev.left);
-          make.size.equalTo($size(300, 40));
+          make.size.equalTo($size(300, 35));
         },
-        events: {
-          changed: function (sender) {
-            let tableName = $text.URLEncode(sender.text);
-            $cache.set("tableName", tableName);
-            //$("tableName").blur()
-          }
-        }
       },
       {
         type: "input",
         props: {
           id: "viewName",
-          text: $text.URLEncode(viewName),
-          placeholder: "填入你的 view name。无需编码，但需注意大小写和空格"
+          text: $text.URLDecode(viewName),
+          placeholder: "填入你的 view name，无需编码"
         },
         layout: function (make, view) {
-          make.top.equalTo(view.prev.bottom).inset(20)
+          make.top.equalTo(view.prev.bottom).inset(15)
           make.left.equalTo(view.prev.left);
-          make.size.equalTo($size(300, 40));
+          make.size.equalTo($size(300, 35));
         },
-        events: {
-          changed: function (sender) {
-            let viewName = $text.URLEncode(sender.text);
-            $cache.set("viewName", viewName);
-            //$("viewName").blur()
-          }
-        }
       },
       {
         type: "input",
@@ -346,17 +378,22 @@ function setting(btnRs=0) {
           placeholder: "page size"
         },
         layout: function (make, view) {
-          make.top.equalTo(view.prev.bottom).inset(20)
+          make.top.equalTo(view.prev.bottom).inset(15)
           make.left.equalTo(view.prev.left);
-          make.size.equalTo($size(300, 40));
+          make.size.equalTo($size(300, 35));
         },
-        events: {
-          changed: function (sender) {
-            var pageSize = sender.text;
-            $cache.set("pageSize", pageSize);
-            //$("pageSize").blur()
-          }
-        }
+      },
+      {
+        type: "input",
+        props: {
+          id: "saveName",
+          placeholder: "给这套配置命个名"
+        },
+        layout: function (make, view) {
+          make.top.equalTo(view.prev.bottom).inset(15)
+          make.left.equalTo(view.prev.left);
+          make.size.equalTo($size(300, 35));
+        },
       },
       {
         type: "button",
@@ -366,28 +403,32 @@ function setting(btnRs=0) {
           id: "restart"
         },
         layout: function (make, view) {
-          make.top.equalTo(view.prev.bottom).inset(20)
+          make.top.equalTo(view.prev.bottom).inset(15)
           make.left.right.inset(15);
         },
         events: {
           tapped: function (sender) {
-            $addin.restart(); //需要手动重启才有可能生效，原因未知
-          }
-        }
-      },
-      {
-        type: "button",
-        props: {
-          title: "继续设置要展示的字段",
-          hidden: btnRs
-        },
-        layout: function (make, view) {
-          make.top.equalTo(view.prev.bottom).inset(20);
-          make.left.right.inset(15);
-        },
-        events: {
-          tapped: function (sender) {
-            recSetting();
+            if (Object.keys(myViews.allViews).includes($("saveName").text)) {
+              $ui.alert({
+                title: "已存在同名视图",
+                message: "是否覆盖？",
+                actions: [
+                  {
+                    title: "OK",
+                    handler: function () {
+                      newViewAdd(saveView)
+                    }
+                  },
+                  {
+                    title: "Cancel",
+                    handler: function () {
+                    }
+                  }
+                ]
+              })
+            } else {
+              newViewAdd(saveView)
+            }
           }
         }
       },
@@ -397,7 +438,7 @@ function setting(btnRs=0) {
           title: "查看更详细的设置方法"
         },
         layout: function (make, view) {
-          make.top.equalTo(view.prev.bottom).inset(20);
+          make.top.equalTo(view.prev.bottom).inset(15);
           make.left.right.inset(15);
         },
         events: {
@@ -769,7 +810,8 @@ function recSetting() {
               data: homeRecs
             },
             handler: function (data) {
-              $cache.set("homeRecs", data);
+              myViews.allViews[cView].homeRecs = data
+              $cache.set("myViews", myViews);
             }
           });
         }
@@ -794,7 +836,8 @@ function recSetting() {
               items: pickerItem(2)
             },
             handler: function (data) {
-              $cache.set("fcFrontRecs", data);
+              myViews.allViews[cView].fcFrontRecs = data
+              $cache.set("myViews", myViews);
             }
           });
         }
@@ -819,7 +862,8 @@ function recSetting() {
               items: pickerItem(4)
             },
             handler: function (data) {
-              $cache.set("fcBackRecs", data);
+              myViews.allViews[cView].fcBackRecs = data
+              $cache.set("myViews", myViews);
             }
           });
         }
@@ -844,7 +888,8 @@ function recSetting() {
               items: pickerItem(1)
             },
             handler: function (data) {
-              $cache.set("fcVoice", data);
+              myViews.allViews[cView].fcVoice = data
+              $cache.set("myViews", myViews);
             }
           });
         }
@@ -869,7 +914,8 @@ function recSetting() {
               items: pickerItem(4)
             },
             handler: function (data) {
-              $cache.set("keyboard", data);
+              myViews.allViews[cView].keyboard = data
+              $cache.set("myViews", myViews);
             }
           });
         }
@@ -911,4 +957,95 @@ function keyboardInput(data) {
   let t4 = info[keyboard[3]] || "";
   let inputText = t1 + "\n" + t2 + "\n" + t3 + "\n" + t4;
   $keyboard.insert(inputText);
+}
+// 视图列表
+function viewsList() {
+  let mItems = Object.keys(myViews.allViews)
+
+  $ui.push({
+    props: {
+      title: "切换视图"
+    },
+    views: [{
+      type: "list",
+      props: {
+        id: "viewsList",
+        data: mItems,
+        header: {
+          type: "label",
+          props: {
+            height: 20,
+            text: "当前视图："+cView,
+            textColor: $color("#AAAAAA"),
+            align: $align.center,
+            font: $font(16)
+          }
+        },
+        actions: [
+          {
+            title: "改名",
+            color: $color("blue"),
+            handler: function (sender, indexPath) {
+              $input.text({
+                text: $("viewsList").object(indexPath),
+                handler: function (text) {
+                  if ($("viewsList").object(indexPath) == cView && $("viewsList").object(indexPath) !== text) {
+                    myViews.currentView = text
+                    $cache.set("myViews", myViews)
+                    $("viewsList").header.text = text
+                  }
+                  myViews.allViews[text] = myViews.allViews[$("viewsList").object(indexPath)]
+                  delete myViews.allViews[$("viewsList").object(indexPath)]
+                  $cache.set("myViews", myViews)
+                  let newvList = $("viewsList").data
+                  newvList[indexPath.row] = text
+                  $("viewsList").data = newvList
+                }
+              })
+            }
+          },
+          {
+            title: "删除",
+            color: $color("red"),
+            handler: function (sender, indexPath) {
+              if ($("viewsList").object(indexPath) == cView) {
+                $ui.toast("不可删除当前视图")
+              } else {
+                delete myViews.allViews[$("viewsList").object(indexPath)]
+                $cache.set("myViews", myViews)
+                $("viewsList").delete(indexPath)
+
+              }
+            }
+          }
+        ]
+      },
+      layout: $layout.fill,
+      events: {
+        didSelect: function (sender, indexPath, data) {
+          myViews.currentView = data
+          $cache.set("myViews", myViews)
+          $addin.restart()
+        }
+      }
+    }]
+  });
+}
+// 添加新的视图
+function newViewAdd(saveView) {
+  if ($("saveName").text == "") { // 未给视图命名时，提供一个默认值
+    let num = Object.keys(myViews.allViews).length
+    $("saveName").text = "view" + num
+    myViews.currentView = "view" + num
+  } else {
+    myViews.currentView = $("saveName").text
+  }
+  saveView.apiKey = $("apiKey").text
+  saveView.baseUrl = $("baseUrl").text
+  saveView.tableName = $text.URLEncode($("tableName").text)
+  saveView.viewName = $text.URLEncode($("viewName").text)
+  saveView.pageSize = $("pageSize").text
+  myViews.allViews[$("saveName").text] = saveView
+  $cache.set("myViews", myViews)
+  $addin.restart()//有时需要手动重启，原因未知
 }
