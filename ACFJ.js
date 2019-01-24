@@ -1,4 +1,4 @@
-const version = 1.8;
+const version = 1.82;
 var pgOffset = "";
 var myViews = $cache.get("myViews") || { currentView: "", allViews: {} };
 var cView = myViews.currentView || ""
@@ -63,11 +63,13 @@ function main() {
               type: "label",
               props: {
                 id: "h1",
+                lines: 0,
                 font: $font("AlNile-Bold", 20) //【】字体大小有待调整
               },
               layout: function (make, view) {
                 make.top.left.equalTo($("shadow"));
                 make.height.equalTo(28);
+                make.width.equalTo($("shadow").width);
               }
             },
             {
@@ -251,7 +253,7 @@ function setting() {
     views: [{
       type: "button",
       props: {
-        title: "airtable 参数配置"
+        title: "添加视图"
       },
       layout: function (make, view) {
         make.top.equalTo(view.super).inset(20)
@@ -266,7 +268,7 @@ function setting() {
     {
       type: "button",
       props: {
-        title: "设置要展示的字段",
+        title: "设置当前视图中的字段",
       },
       layout: function (make, view) {
         make.top.equalTo(view.prev.bottom).inset(15);
@@ -649,11 +651,6 @@ function checked() {
   wordListData[listLoc].h1.text = "✅" + wordListData[listLoc].h1.text;
   $("wordList").data = wordListData;
 }
-
-/*$app.tips(
-  "此脚本需与 Airtable 搭配使用。\n 请在 JSBOX内打开脚本，点击顶部设置按钮自行配置 Airtable 参数。\n完成后，再点击“测试此配置”，配置各页面字段"
-); */
-
 // 取消批量删除
 function delCancel() {
   for (var delItem of delIndex) {
@@ -781,7 +778,7 @@ function recSetting() {
     {
       type: "markdown",
       props: {
-        content: "点击各项，选择各页面要展示的字段。选“空”则不显示。\n使用抽认卡时，table 里需含有一个名为“已记住”的 checkbox 字段",
+        content: "点击各项，选择对应页面要展示的字段。选“空”则不显示。\n使用抽认卡时，table 里需含有一个名为“已记住”的 checkbox 字段",
         scrollEnabled: false
       },
       layout: function (make, view) {
