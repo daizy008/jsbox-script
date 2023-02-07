@@ -22,3 +22,5 @@
 - 可修改 record
 - 可添加 record
 
+# GPTkey
+一个基于JSbox 开发的 iOS 键盘，可以通过自定义 GPT3 API 处理数据。支持自定义Prompt
